@@ -38,9 +38,29 @@ Esta es una **tarea con nota**. Entregas **dos** cosas:
 2. Una **justificación breve** (≈ media plana) que responda:
 
    - ¿Por qué `flyway` usa `condition: service_completed_successfully` y no `service_healthy`?
+        El motivo por el cual Flyway usa service_completed_successfully, es porque necesita que el contenedor encargado de ejecutar las migraciones termine correctamente antes de iniciar la API. Por otra parte, para realizar esta tarea no utiliza service_healthy, porque este último solo valida que el servicio esté disponible, no entrega ninguna validación que el proceso de migración haya finalizado ni mucho menos si este finalizo con errores o correctamente.
+        La importancia de esto reside en que la API, no solo necesita que el servicio de la base de datos esté disponible, sino que también requiere que las tablas, relaciones y datos iniciales estén creados antes de ejecutarse.
+
    - ¿Por qué la api se conecta a `db:5432` y **no** a `localhost:5432`?
+        La API se conecta a db:5432 y no a localhost:5432 porque, dentro de Docker Compose, cada contenedor tiene su propia red interna. 
+        El servicio de la Base de Datos quedo definido dentro del compose.yaml con el nombre db, y el Docker al recibir este nombre lo resuelve automáticamente como si fuera un hostname y por otro lado, si intentamos resolver con localhost, este apunta al propio contenedor de la API, por eso mismo, para comunicarse entre contenedores, se usa el nombre del servicio y el puerto interno.
+
    - ¿Qué pasa si **quitas el `healthcheck`** de `db`? ¿Por qué falla la api al arrancar?
+        Si se quita el healthcheck de db, Docker Compose ya no tiene una forma confiable de saber cuándo PostgreSQL está realmente listo para recibir conexiones. El contenedor puede estar “iniciado”, pero eso no significa que la base de datos ya esté preparada. Como consecuencia, Flyway o la API podrían intentar conectarse demasiado pronto y fallar por errores de conexión, migraciones incompletas o tablas inexistentes.
+
    - ¿Qué sobrevive a `docker compose down`? ¿Y a `docker compose down -v`?
+        Con docker compose down:
+        -	Se eliminan los contenedores.
+        -	Se elimina la red creada por Compose.
+        -	Mantiene “vivo” los volúmenes, por lo cual, los datos PostgreSQL se mantienen.
+
+        Con docker compose down -v:
+        -	Se eliminan los contenedores.
+        -	Se elimina la red creada por Compose.
+        -	Se eliminan los volúmenes asociados, por consiguiente, se borra toda la información existente en la base de datos.
+        
+        En resumen: down detiene y limpia la ejecución pero conserva datos; down -v reinicia el entorno desde cero eliminando también los datos persistidos.
+
 
 > La nota pondera **que entiendas tus decisiones**, no solo que el archivo levante.
 > Un `compose.yaml` que funciona "de casualidad" no obtiene nota completa.
