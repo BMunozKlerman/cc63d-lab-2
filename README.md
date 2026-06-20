@@ -38,9 +38,14 @@ Esta es una **tarea con nota**. Entregas **dos** cosas:
 2. Una **justificación breve** (≈ media plana) que responda:
 
    - ¿Por qué `flyway` usa `condition: service_completed_successfully` y no `service_healthy`?
+   R: flyway no usa service_healthy porque es jun servicio efimero, con un inicio y un fin. Si usaramos el comando se quedaria esperando eternamente.
    - ¿Por qué la api se conecta a `db:5432` y **no** a `localhost:5432`?
+   R: Porque al ser una maquina virtual deja de ser localholst y maneja su propia red privada.
    - ¿Qué pasa si **quitas el `healthcheck`** de `db`? ¿Por qué falla la api al arrancar?
+   R: Fallaria el docker compose ya que el llamado se haria antes de que levante la base de datos.
    - ¿Qué sobrevive a `docker compose down`? ¿Y a `docker compose down -v`?
+   R: Con `docker compose down` sobreviven los datos, los archivos locales y los volumenes de datos guardados en pgdata.
+   Por otra parte `docker compose down -v` borra todo a excepcion de los archivos locales, es decir vuelve al estado inicial.
 
 > La nota pondera **que entiendas tus decisiones**, no solo que el archivo levante.
 > Un `compose.yaml` que funciona "de casualidad" no obtiene nota completa.

@@ -34,16 +34,27 @@ services:
     image: flyway/flyway
     # TODO 1: command para migrar
     #         -url=jdbc:postgresql://db/incidents -user=postgres -password=dev migrate
+    command: -url=jdbc:postgresql://db/incidents -user=postgres -password=dev migrate
     # TODO 2: monta ./db/migrations en /flyway/sql
+    volumes:
+      - ./db/migrations:/flyway/sql
     # TODO 3: depends_on db con condition: service_healthy
     #         (mira el healthcheck del servicio db, arriba)
+    depends_on:
+      db:
+        condition: service_healthy
 
   # --- api: backend Flask ---------------------------------------------------
   api:
     build: .
     # TODO 4: environment DATABASE_URL apuntando a la db por su NOMBRE de servicio
     #         (no "localhost"); la base es "incidents", user postgres, password dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:dev@db/incidents
     # TODO 5: depends_on flyway con condition: service_completed_successfully
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
 
   # --- frontend: Nginx sirve los estáticos y proxea /api/ -------------------
   frontend:
@@ -51,7 +62,12 @@ services:
     ports: ["3000:80"]
     # TODO 6: monta ./static y ./nginx.conf (solo lectura) en las rutas de nginx
     #         (revisa la imagen nginx: dónde van los html y el conf)
+    volumes:
+      - ./static:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     # TODO 7: depends_on api
+    depends_on:
+      - api
 
 volumes:
   pgdata:
